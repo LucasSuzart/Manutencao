@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 
 const Dashboard = () => import('../modules/dashboard/DashboardView.vue')
+const Landing = () => import('../pages/LandingPage.vue')
 const WorkOrders = () => import('../modules/workorders/WorkOrderList.vue')
 const WorkOrderCalendar = () => import('../modules/workorders/WorkOrderCalendar.vue')
 const WorkOrderHistory = () => import('../modules/workorders/WorkOrderHistoryView.vue')
@@ -17,7 +18,8 @@ const Teams = () => import('../modules/teams/TeamsView.vue')
 const Reports = () => import('../modules/reports/ReportsView.vue')
 
 const routes: RouteRecordRaw[] = [
-  { path: '/', name: 'dashboard', component: Dashboard },
+  { path: '/', name: 'landing', component: Landing },
+  { path: '/dashboard', name: 'dashboard', component: Dashboard },
   // Redirecionamentos para manter compatibilidade com URLs antigas (/workorders ...)
   { path: '/workorders', redirect: '/os' },
   { path: '/workorders/:id', redirect: to => `/os/${to.params.id}` },

@@ -52,6 +52,19 @@ export function seedInitialData() {
     category: 'Impressora Offset'
   })
   
+  // Exemplo de imagem do ativo (coloque o arquivo em public/machinas/grafias/maquina-001.jpg)
+  assetStore.add({
+    name: 'Impressora Offset Heidelberg GTO-52 (com foto)',
+    code: 'OFF-001-B',
+    status: 'operational',
+    criticality: 'high',
+    manufacturer: 'Heidelberg',
+    model: 'GTO-52',
+    location: offsetAreaId,
+    category: 'Impressora Offset',
+    imageUrl: '/machinas/graficas/dobradeira-stahl-T-52.jpg' // usando a mesma imagem como exemplo
+  })
+  
   assetStore.add({
     name: 'Guilhotina Industrial Polar 115',
     code: 'GUIL-01',
@@ -71,7 +84,8 @@ export function seedInitialData() {
     manufacturer: 'Stahl',
     model: 'T-52',
     location: dobraAreaId,
-    category: 'Dobradeira'
+    category: 'Dobradeira',
+    imageUrl: '/machinas/graficas/dobradeira-stahl-T-52.jpg'
   })
   
   assetStore.add({

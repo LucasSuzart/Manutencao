@@ -10,6 +10,7 @@ export interface Asset extends Timestamped {
   id: ID;
   name: string;
   code: string; // tag patrimonial / código interno
+  imageUrl?: string; // opcional: caminho relativo para imagem do ativo (ex: /images/maquina.jpg)
   category?: string;
   location?: string;
   status: 'operational' | 'down' | 'maintenance' | 'retired';

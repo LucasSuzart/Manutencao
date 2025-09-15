@@ -1,43 +1,49 @@
 <script setup lang="ts">
-import { useRoute, useRouter } from 'vue-router'
-import { computed, ref } from 'vue'
-import { useAssetStore } from '../../stores/assets'
-import { useLocationStore } from '../../stores/locations'
-import { useWorkOrderStore } from '../../stores/workorders'
-import { Button, BaseCard, StatusBadge } from '../shared/ui'
-import QRPanel from './QRPanel.vue'
-import { formatDate } from '../shared/date'
+import { useRoute, useRouter } from "vue-router";
+import { computed, ref } from "vue";
+import { useAssetStore } from "../../stores/assets";
+import { useLocationStore } from "../../stores/locations";
+import { useWorkOrderStore } from "../../stores/workorders";
+import { Button, BaseCard, StatusBadge } from "../shared/ui";
+import QRPanel from "./QRPanel.vue";
+import { formatDate } from "../shared/date";
+import { watch, ref as vueRef } from "vue";
 
-const route = useRoute()
-const router = useRouter()
-const id = route.params.id as string
-const store = useAssetStore()
-const locStore = useLocationStore()
-const woStore = useWorkOrderStore()
+const route = useRoute();
+const router = useRouter();
+const id = route.params.id as string;
+const store = useAssetStore();
+const locStore = useLocationStore();
+const woStore = useWorkOrderStore();
 
-const asset = computed(() => store.byId(id))
+const asset = computed(() => store.byId(id));
+const imgErrored = vueRef(false);
+
+watch(asset, () => {
+  imgErrored.value = false;
+});
 const location = computed(() => {
-  if (!asset.value?.location) return null
-  return locStore.byId(asset.value.location)
-})
+  if (!asset.value?.location) return null;
+  return locStore.byId(asset.value.location);
+});
 
 // Gerar URL completa para o ativo (para QR code)
 function getPublicBase() {
   // Em produção, o site é hospedado em GitHub Pages neste repo
-  if (import.meta.env.PROD) return 'https://lucassuzart.github.io/Manutencao'
+  if (import.meta.env.PROD) return "https://lucassuzart.github.io/Manutencao";
   // Em dev, usa base local
-  return window.location.origin
+  return window.location.origin;
 }
 
-const assetUrl = computed(() => `${getPublicBase()}/ativos/${id}`)
+const assetUrl = computed(() => `${getPublicBase()}/ativos/${id}`);
 
 // QR print handling
-const qrRef = ref<InstanceType<typeof QRPanel> | null>(null)
+const qrRef = ref<InstanceType<typeof QRPanel> | null>(null);
 function printAssetQR() {
-  const dataUrl = qrRef.value?.toDataURL()
-  if (!dataUrl || !asset.value) return
-  const w = window.open('', '_blank', 'width=400,height=500')
-  if (!w) return
+  const dataUrl = qrRef.value?.toDataURL();
+  if (!dataUrl || !asset.value) return;
+  const w = window.open("", "_blank", "width=400,height=500");
+  if (!w) return;
   const html = `
     <html>
     <head>
@@ -56,44 +62,45 @@ function printAssetQR() {
       <div class="code">${asset.value.code}</div>
       <script>window.onload = () => { window.print(); setTimeout(() => window.close(), 300); };<\/script>
     </body>
-    </html>`
-  w.document.write(html)
-  w.document.close()
+    </html>`;
+  w.document.write(html);
+  w.document.close();
 }
 
 // Simular planos de serviço para o ativo
 const servicePlans = computed(() => {
   // Implementação real seria buscar os planos de manutenção associados ao ativo
   // Por enquanto, vamos retornar um array vazio para a demonstração
-  return []
-})
+  return [];
+});
 
 // Responsável pelo ativo (técnico ou equipe)
 const responsibleName = computed(() => {
   // Em uma implementação real, buscaria o técnico responsável
-  return 'TIME MANUTENÇÃO'
-})
+  return "TIME MANUTENÇÃO";
+});
 
 // Data da última inspeção
 const lastInspectionDate = computed(() => {
-  const inspectionWOs = assetWorkOrders.value.filter(wo => 
-    wo.type === 'inspection' && wo.status === 'completed'
-  )
-  if (inspectionWOs.length === 0) return null
-  return inspectionWOs.sort((a, b) => 
-    new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime()
-  )[0].completedAt
-})
+  const inspectionWOs = assetWorkOrders.value.filter(
+    (wo) => wo.type === "inspection" && wo.status === "completed"
+  );
+  if (inspectionWOs.length === 0) return null;
+  return inspectionWOs.sort(
+    (a, b) => new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime()
+  )[0].completedAt;
+});
 
 // Obter histórico de ordens de serviço para este ativo
 const assetWorkOrders = computed(() => {
-  if (!asset.value) return []
-  return woStore.workOrders.filter(wo => wo.assetId === id)
+  if (!asset.value) return [];
+  return woStore.workOrders
+    .filter((wo) => wo.assetId === id)
     .sort((a, b) => {
       // Ordenar por data de criação, mais recentes primeiro
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    })
-})
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+});
 
 // Calcular métricas básicas
 const metrics = computed(() => {
@@ -105,25 +112,30 @@ const metrics = computed(() => {
       completedOrders: 0,
       completionRate: 0,
       corrective: 0,
-      preventive: 0
-    }
+      preventive: 0,
+    };
   }
 
-  const total = assetWorkOrders.value.length
-  const pending = assetWorkOrders.value.filter(wo => 
-    wo.status !== 'completed' && wo.status !== 'canceled'
-  ).length
-  const completed = assetWorkOrders.value.filter(wo => wo.status === 'completed').length
-  
+  const total = assetWorkOrders.value.length;
+  const pending = assetWorkOrders.value.filter(
+    (wo) => wo.status !== "completed" && wo.status !== "canceled"
+  ).length;
+  const completed = assetWorkOrders.value.filter((wo) => wo.status === "completed")
+    .length;
+
   const lastCompleted = assetWorkOrders.value
-    .filter(wo => wo.completedAt)
-    .sort((a, b) => new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime())[0]
-    
-  const corrective = assetWorkOrders.value.filter(wo => wo.type === 'corrective').length
-  const preventive = assetWorkOrders.value.filter(wo => 
-    wo.type === 'preventive' || wo.type === 'predictive' || wo.type === 'inspection'
-  ).length
-  
+    .filter((wo) => wo.completedAt)
+    .sort(
+      (a, b) => new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime()
+    )[0];
+
+  const corrective = assetWorkOrders.value.filter((wo) => wo.type === "corrective")
+    .length;
+  const preventive = assetWorkOrders.value.filter(
+    (wo) =>
+      wo.type === "preventive" || wo.type === "predictive" || wo.type === "inspection"
+  ).length;
+
   return {
     totalOrders: total,
     pendingOrders: pending,
@@ -131,43 +143,66 @@ const metrics = computed(() => {
     completionRate: total ? Math.round((completed / total) * 100) : 0,
     lastMaintenance: lastCompleted?.completedAt || null,
     corrective,
-    preventive
-  }
-})
+    preventive,
+  };
+});
 
 // Formatar datas em formato pt-BR
 function formatDateBR(date: string | undefined | null) {
-  if (!date) return 'N/A'
-  return new Date(date).toLocaleDateString('pt-BR')
+  if (!date) return "N/A";
+  return new Date(date).toLocaleDateString("pt-BR");
 }
 
 // Navegação
-function goEdit() { 
-  router.push({ name: 'assets-edit', params: { id } }) 
+function goEdit() {
+  router.push({ name: "assets-edit", params: { id } });
 }
 
 function goToWorkOrders() {
-  router.push({ 
-    name: 'workorders-new',
-    query: { 
+  router.push({
+    name: "workorders-new",
+    query: {
       assetId: id,
-      assetName: asset.value?.name
-    }
-  })
+      assetName: asset.value?.name,
+    },
+  });
 }
 
 function goToWorkOrder(orderId: string) {
-  router.push({ name: 'workorder-detail', params: { id: orderId }})
+  router.push({ name: "workorder-detail", params: { id: orderId } });
 }
 
-function visualizarOrdens(type: 'pending' | 'completed') {
-  router.push({ 
-    name: 'workorders', 
-    query: { 
-      assetId: id, 
-      status: type === 'pending' ? ['open', 'in_progress', 'paused'] : ['completed']
-    }
-  })
+function visualizarOrdens(type: "pending" | "completed") {
+  router.push({
+    name: "workorders",
+    query: {
+      assetId: id,
+      status: type === "pending" ? ["open", "in_progress", "paused"] : ["completed"],
+    },
+  });
+}
+
+// Resolve image URL considering BASE_URL, data URLs and absolute URLs
+function resolveImageUrl(url?: string | null) {
+  if (!url) return "";
+  if (url.startsWith("data:")) return url;
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  const base = import.meta.env.BASE_URL || "/";
+  if (url.startsWith("/")) return base.replace(/\/$/, "") + url;
+  return base + url;
+}
+
+  const placeholderUrl = (import.meta.env.BASE_URL || '/') + 'placeholder.svg';
+
+function currentImageSrc() {
+  if (imgErrored.value) return placeholderUrl;
+  const url = resolveImageUrl(asset.value?.imageUrl);
+  console.log('Asset image URL:', url, 'Original:', asset.value?.imageUrl);
+    return url || placeholderUrl;
+}
+
+function onImgError() {
+  imgErrored.value = true;
 }
 </script>
 
@@ -194,18 +229,19 @@ function visualizarOrdens(type: 'pending' | 'completed') {
         <!-- Imagem do equipamento -->
         <BaseCard class="asset-image-card">
           <div class="asset-image-container">
-            <img 
-              src="https://via.placeholder.com/400x300?text=Imagem+do+Equipamento" 
-              alt="Imagem do equipamento" 
+            <img
+              :src="currentImageSrc()"
+              :alt="`Imagem de ${asset.name}`"
               class="asset-image"
+              @error="onImgError"
             />
           </div>
         </BaseCard>
-        
+
         <!-- Informações de manutenção -->
         <BaseCard>
           <template #header><h3>Informações de Manutenção</h3></template>
-          
+
           <div class="info-grid">
             <div class="info-row">
               <div class="info-label">Status:</div>
@@ -213,14 +249,18 @@ function visualizarOrdens(type: 'pending' | 'completed') {
                 <StatusBadge v-if="asset.status" :status="asset.status" type="asset" />
               </div>
             </div>
-            
+
             <div class="info-row">
               <div class="info-label">Criticidade:</div>
               <div class="info-value">
-                <StatusBadge v-if="asset.criticality" :status="asset.criticality" type="criticality" />
+                <StatusBadge
+                  v-if="asset.criticality"
+                  :status="asset.criticality"
+                  type="criticality"
+                />
               </div>
             </div>
-            
+
             <div class="info-row">
               <div class="info-label">Instalação:</div>
               <div class="info-value">{{ formatDateBR(asset?.installationDate) }}</div>
@@ -235,22 +275,22 @@ function visualizarOrdens(type: 'pending' | 'completed') {
               <div class="info-label">Último reparo:</div>
               <div class="info-value">{{ formatDateBR(asset?.lastRepairAt) }}</div>
             </div>
-            
+
             <div class="info-row">
               <div class="info-label">Localização:</div>
-              <div class="info-value">{{ location?.name || '-' }}</div>
+              <div class="info-value">{{ location?.name || "-" }}</div>
             </div>
           </div>
         </BaseCard>
-        
+
         <!-- Solicitações -->
         <BaseCard>
           <template #header><h3>Solicitações</h3></template>
-          
+
           <div v-if="!servicePlans.length" class="empty-item">
             <p>Nenhuma solicitação de manutenção planejada para este ativo.</p>
           </div>
-          
+
           <div class="request-list">
             <!-- Itens de solicitação simulados baseados na imagem de referência -->
             <div class="request-item">
@@ -264,7 +304,7 @@ function visualizarOrdens(type: 'pending' | 'completed') {
                 </div>
               </div>
             </div>
-            
+
             <div class="request-item">
               <div class="request-icon">
                 <i class="fas fa-search"></i>
@@ -276,7 +316,7 @@ function visualizarOrdens(type: 'pending' | 'completed') {
                 </div>
               </div>
             </div>
-            
+
             <!-- Simulação de itens de solicitação baseados na imagem -->
             <div class="request-item">
               <div class="request-icon">
@@ -289,7 +329,7 @@ function visualizarOrdens(type: 'pending' | 'completed') {
                 </div>
               </div>
             </div>
-            
+
             <div class="request-item">
               <div class="request-icon">
                 <i class="fas fa-search"></i>
@@ -303,11 +343,11 @@ function visualizarOrdens(type: 'pending' | 'completed') {
             </div>
           </div>
         </BaseCard>
-        
+
         <!-- Ordens de Serviço -->
         <BaseCard>
           <template #header><h3>Ordens de Serviço</h3></template>
-          
+
           <div class="order-summary">
             <div class="order-summary-item">
               <div class="order-summary-header">
@@ -315,22 +355,26 @@ function visualizarOrdens(type: 'pending' | 'completed') {
                 <span class="order-count">{{ metrics.pendingOrders }}</span>
               </div>
               <div class="order-summary-action">
-                <Button variant="ghost" size="sm" @click="visualizarOrdens('pending')">Visualizar &rarr;</Button>
+                <Button variant="ghost" size="sm" @click="visualizarOrdens('pending')"
+                  >Visualizar &rarr;</Button
+                >
               </div>
             </div>
-            
+
             <div class="order-summary-item">
               <div class="order-summary-header">
                 <span>Concluídas:</span>
                 <span class="order-count">{{ metrics.completedOrders }}</span>
               </div>
               <div class="order-summary-action">
-                <Button variant="ghost" size="sm" @click="visualizarOrdens('completed')">Visualizar &rarr;</Button>
+                <Button variant="ghost" size="sm" @click="visualizarOrdens('completed')"
+                  >Visualizar &rarr;</Button
+                >
               </div>
             </div>
           </div>
         </BaseCard>
-        
+
         <!-- Histórico de Ordens de Serviço -->
         <BaseCard class="history-card">
           <template #header>
@@ -339,11 +383,11 @@ function visualizarOrdens(type: 'pending' | 'completed') {
               <Button variant="primary" size="sm" @click="goToWorkOrders">Nova OS</Button>
             </div>
           </template>
-          
+
           <div v-if="assetWorkOrders.length === 0" class="empty-history">
             <p>Nenhuma ordem de serviço registrada para este ativo.</p>
           </div>
-          
+
           <div v-else class="order-history">
             <div v-for="order in assetWorkOrders" :key="order.id" class="order-item">
               <div class="order-header">
@@ -352,28 +396,31 @@ function visualizarOrdens(type: 'pending' | 'completed') {
                 </div>
                 <StatusBadge :status="order.status" type="workorder" />
               </div>
-              
+
               <div class="order-info">
                 <div class="order-details">
                   <div class="order-type">
                     <span class="label">Tipo:</span>
-                    {{ order.type === 'corrective' ? 'Corretiva' : 
-                       order.type === 'preventive' ? 'Preventiva' : 
-                       order.type === 'predictive' ? 'Preditiva' : 
-                       order.type === 'inspection' ? 'Inspeção' : 'Melhoria' }}
+                    {{
+                      order.type === "corrective"
+                        ? "Corretiva"
+                        : order.type === "preventive"
+                        ? "Preventiva"
+                        : order.type === "predictive"
+                        ? "Preditiva"
+                        : order.type === "inspection"
+                        ? "Inspeção"
+                        : "Melhoria"
+                    }}
                   </div>
-                  
+
                   <div class="order-date">
                     <span class="label">Data:</span>
                     {{ formatDateBR(order.createdAt) }}
                   </div>
                 </div>
-                
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  @click="goToWorkOrder(order.id)"
-                >
+
+                <Button variant="ghost" size="sm" @click="goToWorkOrder(order.id)">
                   Ver detalhes
                 </Button>
               </div>
@@ -381,53 +428,57 @@ function visualizarOrdens(type: 'pending' | 'completed') {
           </div>
         </BaseCard>
       </div>
-      
+
       <!-- Coluna lateral -->
       <div class="detail-side">
         <!-- Informações gerais -->
         <BaseCard>
           <template #header><h3>Informações Gerais</h3></template>
-          
+
           <div class="info-grid">
             <div class="info-row">
               <div class="info-label">Modelo:</div>
-              <div class="info-value">{{ asset?.model || 'Motobomba' }}</div>
+              <div class="info-value">{{ asset?.model || "Motobomba" }}</div>
             </div>
-            
+
             <div class="info-row">
               <div class="info-label">Fabricante:</div>
-              <div class="info-value">{{ asset?.manufacturer || '-' }}</div>
+              <div class="info-value">{{ asset?.manufacturer || "-" }}</div>
             </div>
-            
+
             <div class="info-row">
               <div class="info-label">Série:</div>
-              <div class="info-value">{{ asset?.serialNumber || '-' }}</div>
+              <div class="info-value">{{ asset?.serialNumber || "-" }}</div>
             </div>
-            
+
             <div class="info-row">
               <div class="info-label">Categoria:</div>
-              <div class="info-value">{{ asset?.category || '-' }}</div>
+              <div class="info-value">{{ asset?.category || "-" }}</div>
             </div>
           </div>
         </BaseCard>
-        
+
         <!-- QR Code -->
         <BaseCard>
           <template #header>
             <div class="card-header">
               <h3>Código QR</h3>
-              <Button size="sm" variant="secondary" @click="printAssetQR">🖨️ Imprimir</Button>
+              <Button size="sm" variant="secondary" @click="printAssetQR"
+                >🖨️ Imprimir</Button
+              >
             </div>
           </template>
           <div class="qr-container">
-            <QRPanel v-if="asset" ref="qrRef" :value="assetUrl" :caption="assetUrl" />
+            <a :href="assetUrl" target="_blank" rel="noreferrer" class="qr-link">
+              <QRPanel v-if="asset" ref="qrRef" :value="assetUrl" :caption="assetUrl" />
+            </a>
           </div>
         </BaseCard>
-        
+
         <!-- Responsável -->
         <BaseCard>
           <template #header><h3>Responsável</h3></template>
-          
+
           <div class="responsible-section">
             <div class="responsible-avatar">
               <i class="fas fa-user-hard-hat"></i>
@@ -438,37 +489,37 @@ function visualizarOrdens(type: 'pending' | 'completed') {
             </div>
           </div>
         </BaseCard>
-        
+
         <!-- Métricas e Indicadores -->
         <BaseCard>
           <template #header><h3>Métricas</h3></template>
-          
+
           <div class="metrics">
             <div class="metric-item">
               <div class="metric-label">Total OS:</div>
               <div class="metric-value">{{ metrics.totalOrders }}</div>
             </div>
-            
+
             <div class="metric-item">
               <div class="metric-label">OS Pendentes:</div>
               <div class="metric-value">{{ metrics.pendingOrders }}</div>
             </div>
-            
+
             <div class="metric-item">
               <div class="metric-label">Taxa Conclusão:</div>
               <div class="metric-value">{{ metrics.completionRate }}%</div>
             </div>
-            
+
             <div class="metric-item">
               <div class="metric-label">Última Manutenção:</div>
               <div class="metric-value">{{ formatDateBR(metrics.lastMaintenance) }}</div>
             </div>
-            
+
             <div class="metric-item">
               <div class="metric-label">OS Corretivas:</div>
               <div class="metric-value">{{ metrics.corrective }}</div>
             </div>
-            
+
             <div class="metric-item">
               <div class="metric-label">OS Preventivas:</div>
               <div class="metric-value">{{ metrics.preventive }}</div>
@@ -478,12 +529,14 @@ function visualizarOrdens(type: 'pending' | 'completed') {
       </div>
     </div>
   </div>
-  
+
   <!-- Mensagem de erro se o ativo não for encontrado -->
   <div class="asset-not-found page" v-else>
     <h2>Ativo não encontrado</h2>
     <p>O ativo solicitado não existe ou foi removido.</p>
-    <Button variant="primary" @click="router.push({ name: 'assets' })">Voltar para Ativos</Button>
+    <Button variant="primary" @click="router.push({ name: 'assets' })"
+      >Voltar para Ativos</Button
+    >
   </div>
 </template>
 
@@ -546,9 +599,13 @@ function visualizarOrdens(type: 'pending' | 'completed') {
 
 .asset-image {
   max-width: 100%;
-  border-radius: var(--border-radius-md);
+  border-radius: 8px;
   border: 1px solid var(--color-border);
+  object-fit: cover;
+  max-height: 320px;
 }
+
+.asset-image-container { background: linear-gradient(180deg, rgba(0,0,0,0.02), transparent); border-radius: 8px; }
 
 /* Informações gerais */
 .info-grid {
@@ -706,7 +763,8 @@ function visualizarOrdens(type: 'pending' | 'completed') {
   gap: var(--spacing-lg);
 }
 
-.order-type, .order-date {
+.order-type,
+.order-date {
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
 }

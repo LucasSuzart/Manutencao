@@ -16,11 +16,12 @@ function resetData() {
     <aside class="nav">
       <div class="nav__brand">eMainPrint Manager</div>
       <nav class="nav__menu">
-        <RouterLink to="/">Dashboard</RouterLink>
+        <RouterLink to="/dashboard">Dashboard</RouterLink>
+        <RouterLink to="/ativos">Ativos</RouterLink>
         <RouterLink to="/os">Ordens</RouterLink>
+        <RouterLink to="/os/calendario">Calendário OS</RouterLink>
         <RouterLink to="/os/historico">Histórico OS</RouterLink>
         <RouterLink to="/planos">Planos</RouterLink>
-        <RouterLink to="/ativos">Ativos</RouterLink>
         <RouterLink to="/estoque">Estoque</RouterLink>
         <RouterLink to="/custos">Custos</RouterLink>
         <RouterLink to="/equipes">Equipes</RouterLink>
@@ -30,7 +31,7 @@ function resetData() {
     </aside>
     <div class="workspace">
       <header class="topbar">
-        <div class="topbar__title">CMMS</div>
+        <div class="topbar__title">eMainPrint Manager</div>
         <div class="topbar__actions">
           <Button variant="outline" size="sm" @click="resetDataModal = true">
             Resetar Dados
@@ -52,7 +53,7 @@ function resetData() {
   </Modal>
 </template>
 
-<style>
+  <style>
 /* Estilos específicos do App */
 .app-shell {
   display: grid;
@@ -61,19 +62,27 @@ function resetData() {
 }
 
 .nav {
-  background: var(--color-primary);
-  color: var(--color-text-inverted);
+  background: #ffffff;
+  color: var(--color-text-primary);
   display: flex;
   flex-direction: column;
-  padding: var(--spacing-lg) var(--spacing-md);
-  gap: var(--spacing-lg);
+  padding: var(--spacing-xl) var(--spacing-lg);
+  gap: var(--spacing-xl);
+  border-right: 1px solid #e5e7eb;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
 }
 
 .nav__brand {
-  font-weight: 600;
-  font-size: var(--font-size-xl);
-  color: var(--color-text-inverted);
+  font-weight: 700;
+  font-size: var(--font-size-lg);
+  color: #f78018;
   letter-spacing: 0.5px;
+  text-align: center;
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-lg);
+  background: linear-gradient(135deg, #fff7ed, #fed7aa);
+  border: 2px solid #fdba74;
+  box-shadow: 0 2px 8px rgba(247, 128, 24, 0.15);
 }
 
 .nav__menu {
@@ -83,57 +92,91 @@ function resetData() {
 }
 
 .nav__menu a {
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--border-radius-lg);
   text-decoration: none;
-  color: var(--color-text-inverted);
+  color: #4b5563;
   font-weight: 500;
-  font-size: var(--font-size-sm);
-  transition: background-color var(--transition-fast);
+  font-size: var(--font-size-base);
+  transition: all var(--transition-normal);
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.nav__menu a::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #d1d5db;
+  transition: all var(--transition-normal);
 }
 
 .nav__menu a.router-link-active {
-  background: var(--color-primary-hover);
+  background: linear-gradient(135deg, #fff7ed, #fed7aa);
+  color: #f78018;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(247, 128, 24, 0.15);
+  border: 1px solid #fdba74;
+}
+
+.nav__menu a.router-link-active::before {
+  background: #f78018;
+  box-shadow: 0 0 0 3px rgba(247, 128, 24, 0.2);
 }
 
 .nav__menu a:hover {
-  background: var(--color-primary-active);
+  background: #f9fafb;
+  color: #374151;
+  transform: translateX(4px);
+}
+
+.nav__menu a:hover::before {
+  background: #9ca3af;
 }
 
 .nav__footer {
   margin-top: auto;
   font-size: var(--font-size-xs);
   opacity: 0.6;
+  text-align: center;
+  color: #9ca3af;
+  font-weight: 500;
 }
 
 .workspace {
   display: flex;
   flex-direction: column;
-  background: var(--color-background);
+  background: #fafbfc;
 }
 
 .topbar {
   height: var(--topbar-height);
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 var(--spacing-lg);
+  padding: 0 var(--spacing-xl);
   position: sticky;
   top: 0;
   z-index: 10;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .topbar__title {
-  font-size: var(--font-size-base);
-  font-weight: 600;
+  font-size: var(--font-size-lg);
+  font-weight: 700;
   letter-spacing: 0.5px;
+  color: #f78018;
 }
 
 .main {
-  padding: var(--spacing-lg) var(--spacing-xl) var(--spacing-xxl);
+  padding: var(--spacing-xl) var(--spacing-xxl) var(--spacing-xxl);
+  background: linear-gradient(135deg, #fafbfc 0%, #f3f4f6 100%);
+  min-height: calc(100vh - var(--topbar-height));
 }
 
 @media (max-width: 940px) {

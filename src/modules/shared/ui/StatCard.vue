@@ -30,44 +30,64 @@ defineProps<{
 
 <style scoped>
 .stat-card {
-  background: var(--color-surface);
-  border-radius: var(--border-radius-md);
-  box-shadow: var(--shadow-sm);
-  padding: var(--spacing-md) var(--spacing-lg);
+  background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  padding: 2rem 1.5rem;
   display: flex;
   flex-direction: column;
-  min-width: 140px;
-  border: 1px solid var(--color-border);
+  min-width: 200px;
+  border: 1px solid #e5e7eb;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
-.stat-card--primary {
-  border-left: 4px solid var(--color-accent);
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #f78018, #ea580c);
 }
 
-.stat-card--success {
-  border-left: 4px solid var(--color-success);
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
-.stat-card--warning {
-  border-left: 4px solid var(--color-warning);
+.stat-card--primary::before {
+  background: linear-gradient(90deg, #f78018, #ea580c);
 }
 
-.stat-card--danger {
-  border-left: 4px solid var(--color-error);
+.stat-card--success::before {
+  background: linear-gradient(90deg, #10b981, #059669);
+}
+
+.stat-card--warning::before {
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+
+.stat-card--danger::before {
+  background: linear-gradient(90deg, #ef4444, #dc2626);
 }
 
 .stat-card__title {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: var(--spacing-xs);
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.025em;
 }
 
 .stat-card__value {
-  font-size: var(--font-size-xl);
-  font-weight: 600;
-  margin-bottom: var(--spacing-xs);
+  font-size: 2.25rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  color: #1f2937;
+  line-height: 1;
 }
 
 .stat-card__unit {

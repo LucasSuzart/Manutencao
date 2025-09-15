@@ -242,16 +242,21 @@ const columns = [
 
 <style scoped>
 .dashboard {
-  padding: 1.5rem;
+  padding: 2rem;
   max-width: 1400px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
 .dashboard-header {
-  margin-bottom: 1rem;
+  margin-bottom: 0;
+  background: linear-gradient(135deg, #ffffff 0%, #fef7ed 100%);
+  padding: 2rem;
+  border-radius: 16px;
+  border: 1px solid #fed7aa;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .header-content {
@@ -261,16 +266,21 @@ const columns = [
 }
 
 .dashboard-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--color-text-primary);
+  font-size: 2.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #f78018 0%, #ea580c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   margin: 0;
+  letter-spacing: -0.02em;
 }
 
 .dashboard-subtitle {
-  color: var(--color-text-secondary);
-  font-size: 1rem;
-  margin: 0;
+  color: #6b7280;
+  font-size: 1.1rem;
+  margin: 0.5rem 0 0 0;
+  font-weight: 500;
 }
 
 .alert-section {
@@ -283,14 +293,14 @@ const columns = [
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
 }
 
 .main-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
 .recent-workorders-card {
@@ -322,11 +332,12 @@ const columns = [
 
 .card-info {
   font-size: 0.875rem;
-  color: var(--color-text-secondary);
-  background: var(--color-background-secondary);
+  color: #6b7280;
+  background: linear-gradient(135deg, #fef7ed, #fed7aa);
   padding: 0.5rem 1rem;
-  border-radius: 6px;
-  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  border: 1px solid #fdba74;
+  font-weight: 600;
 }
 
 .workorders-table {

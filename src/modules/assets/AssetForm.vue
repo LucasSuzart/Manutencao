@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useAssetStore } from '../../stores/assets'
 import { useLocationStore } from '../../stores/locations'
 import { Button, InputField, SelectField } from '../shared/ui'
@@ -12,6 +13,34 @@ const emit = defineEmits(['update:modelValue', 'saved'])
 
 const store = useAssetStore()
 const locStore = useLocationStore()
+const route = useRoute()
+const router = useRouter()
+
+// If this component is used as a route (/ativos/:id/editar), load the asset
+onMounted(() => {
+  // If modelValue provided (modal usage), keep it. Otherwise try route param.
+  if (!props.modelValue) {
+    const id = route.params.id as string | undefined
+    if (id) {
+      const a = store.byId(id)
+      if (a) {
+        form.value = {
+          id: a.id,
+          name: a.name || '',
+          code: a.code || '',
+          status: a.status || 'operational',
+          criticality: a.criticality || 'medium',
+          category: a.category || '',
+          location: a.location || '',
+          manufacturer: a.manufacturer || '',
+          model: a.model || '',
+          serialNumber: a.serialNumber || '',
+          imageUrl: a.imageUrl || ''
+        }
+      }
+    }
+  }
+})
 
 // Função para formatar as opções de localização hierarquicamente
 function formatLocationOptions(locations: any[]) {
@@ -58,17 +87,42 @@ const form = ref({
   location: props.modelValue?.location || '',
   manufacturer: props.modelValue?.manufacturer || '',
   model: props.modelValue?.model || '',
-  serialNumber: props.modelValue?.serialNumber || ''
+  serialNumber: props.modelValue?.serialNumber || '',
+  imageUrl: props.modelValue?.imageUrl || ''
 })
+
+// Handle file input and convert to Data URL
+function onFileChange(ev: Event) {
+  const input = ev.target as HTMLInputElement
+  if (!input.files || !input.files[0]) return
+  const file = input.files[0]
+  const reader = new FileReader()
+  reader.onload = () => {
+    form.value.imageUrl = reader.result as string
+  }
+  reader.readAsDataURL(file)
+}
+
+function removeImage() {
+  form.value.imageUrl = ''
+}
 
 function save() {
   if (!form.value.name || !form.value.code) return
   if (form.value.id) {
-    store.update(form.value.id, { ...form.value })
+    const { imageUrl, ...rest } = form.value
+    store.update(form.value.id, { ...rest, imageUrl })
+    emit('saved')
+    // navigate to detail after saving
+    router.push({ name: 'asset-detail', params: { id: form.value.id } })
   } else {
-    store.add({ ...form.value })
+    const { imageUrl, ...rest } = form.value
+    store.add({ ...rest, imageUrl })
+    emit('saved')
+    // new asset - navigate to the newly created asset detail
+    const newId = store.assets[store.assets.length - 1]?.id
+    if (newId) router.push({ name: 'asset-detail', params: { id: newId } })
   }
-  emit('saved')
 }
 </script>
 
@@ -89,6 +143,17 @@ function save() {
       <InputField v-model="form.manufacturer" label="Fabricante" />
       <InputField v-model="form.model" label="Modelo" />
       <InputField v-model="form.serialNumber" label="Número de Série" />
+      <!-- Image upload -->
+      <div>
+        <label class="label">Foto do equipamento</label>
+        <input type="file" accept="image/*" @change="onFileChange" />
+          <div v-if="form.imageUrl" class="image-preview">
+            <img :src="form.imageUrl" alt="preview" class="preview-img" />
+            <div class="preview-actions">
+              <Button variant="ghost" size="sm" @click.prevent="removeImage">Remover</Button>
+            </div>
+          </div>
+      </div>
     </div>
     <div class="form-actions">
       <Button variant="primary" @click="save">Salvar</Button>
@@ -99,5 +164,8 @@ function save() {
 <style scoped>
 .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px }
 .form-actions { margin-top:12px; display:flex; justify-content:flex-end }
+.image-preview { margin-top:8px; display:flex; flex-direction:column; gap:6px }
+.preview-img { max-width:240px; border-radius:8px; border:1px solid var(--color-border); object-fit:cover }
+.preview-actions { display:flex; gap:8px }
 @media (max-width:768px) { .form-grid{grid-template-columns:1fr} }
 </style>
