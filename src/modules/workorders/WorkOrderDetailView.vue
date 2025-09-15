@@ -18,9 +18,13 @@ const workOrder = computed(() => woStore.byId(id));
 // QR printing helpers
 const osQrRef = ref<InstanceType<typeof QRPanel> | null>(null)
 const assetQrRef = ref<InstanceType<typeof QRPanel> | null>(null)
-const baseOrigin = window.location.origin
-const osUrl = computed(() => `${baseOrigin}/os/${id}`)
-const assetUrl = computed(() => workOrder.value?.assetId ? `${baseOrigin}/ativos/${workOrder.value.assetId}` : '')
+function getPublicBase() {
+  if (import.meta.env.PROD) return 'https://lucassuzart.github.io/Manutencao'
+  return window.location.origin
+}
+
+const osUrl = computed(() => `${getPublicBase()}/os/${id}`)
+const assetUrl = computed(() => workOrder.value?.assetId ? `${getPublicBase()}/ativos/${workOrder.value.assetId}` : '')
 
 function printQr(dataUrl: string, title: string, subtitle?: string) {
   if (!dataUrl) return

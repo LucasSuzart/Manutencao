@@ -22,11 +22,14 @@ const location = computed(() => {
 })
 
 // Gerar URL completa para o ativo (para QR code)
-const assetUrl = computed(() => {
-  // Usando window.location para pegar o base URL atual
-  const baseUrl = window.location.origin
-  return `${baseUrl}/ativos/${id}`
-})
+function getPublicBase() {
+  // Em produção, o site é hospedado em GitHub Pages neste repo
+  if (import.meta.env.PROD) return 'https://lucassuzart.github.io/Manutencao'
+  // Em dev, usa base local
+  return window.location.origin
+}
+
+const assetUrl = computed(() => `${getPublicBase()}/ativos/${id}`)
 
 // QR print handling
 const qrRef = ref<InstanceType<typeof QRPanel> | null>(null)
